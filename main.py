@@ -106,6 +106,82 @@ class LinkPanel(discord.ui.View):
 
         if not x:
             await interaction.response.send_message('You are out of requests.', ephemeral=True)
+
+
+    @discord.ui.button(label="Lucid (Subdomains)", style=discord.ButtonStyle.gray, custom_id='persistent_view:gray')
+    async def gray(self, interaction: discord.Interaction, button: discord.ui.Button):
+        present = False
+        x = False
+        with open('freednsdata.json', "r") as f:
+            data = json.load(f)
+
+        with open("freednslinks.txt", "r") as f:
+            links = f.readlines()
+
+        link = random.choice(links)
+
+        for entry in data:
+            if entry['id'] == interaction.user.id:
+                present = True
+                if entry['requests'] != 0:
+                    entry['requests'] -= 1
+                    embedx = discord.Embed(title="Link Delivery",
+                      description="Your requested link is below.",
+                      colour=0x165bfe)
+
+                    embedx.set_author(name=os.getenv("DISCORD_BOT_NAME"),
+                                    url=os.getenv("DISCORD_BOT_URL"),
+                                    icon_url=os.getenv("DISCORD_ICON_URL"))
+
+                    embedx.add_field(name="Link",
+                                    value=link,
+                                    inline=False)
+                    embedx.add_field(name="Requests Remaining",
+                                    value=entry['requests'],
+                                    inline=False)
+                    await interaction.user.send(embed=embedx)
+                    with open('freednsdata.json', "w") as f:
+                        json.dump(data, f)
+                    x = True
+                    await interaction.response.send_message('Link delivered. Check your DMs.', ephemeral=True)
+
+
+        if not present:
+            new = {
+                "id": interaction.user.id,
+                "requests": 6
+            }
+            data.append(new)
+
+
+            for entry in data:
+                if entry['id'] == interaction.user.id:
+                    present = True
+                    if entry['requests'] != 0:
+                        entry['requests'] -= 1
+                        embedx = discord.Embed(title="Link Delivery",
+                        description="Your requested link is below.",
+                        colour=0x165bfe)
+
+                        embedx.set_author(name=os.getenv("DISCORD_BOT_NAME"),
+                                        url=os.getenv("DISCORD_BOT_URL"),
+                                        icon_url=os.getenv("DISCORD_ICON_URL"))
+
+                        embedx.add_field(name="Link",
+                                        value=link,
+                                        inline=False)
+                        embedx.add_field(name="Requests Remaining",
+                                        value=entry['requests'],
+                                        inline=False)
+                        await interaction.user.send(embed=embedx)
+                        with open('freednsdata.json', "w") as f:
+                            json.dump(data, f)
+                        x = True
+                        await interaction.response.send_message('Link delivered. Check your DMs.', ephemeral=True)
+            
+
+        if not x:
+            await interaction.response.send_message('You are out of requests.', ephemeral=True)
         
 
 @client.event
@@ -118,7 +194,7 @@ async def on_ready():
 @client.tree.command()
 async def panel(interaction: discord.Interaction):
     embed = discord.Embed(title="Link Panel",
-                      description="This is the official NovaLabs link panel. Here you can receive up to 3 links per month. To receive additional link requests, please boost the server or become a donator. Please have your DMs turned on to recieve the links, otherwise you will not recieve any. Please make a ticket if you have any bugs.",
+                      description="This is the official NovaLabs link panel. Here you can receive up to 3 standalone links per month & 6 subdomain links per month. To receive additional link requests, please boost the server or become a donator. Please have your DMs turned on to recieve the links, otherwise you will not recieve any. Please make a ticket if you have any bugs.",
                       colour=0x165bfe)
 
     embed.set_author(name=os.getenv("DISCORD_BOT_NAME"),
